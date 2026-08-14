@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Birthday Cake Animation</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  background:radial-gradient(circle at 50% 35%,#351044 0%,#180821 48%,#08030e 100%);
+  font-family:Arial,sans-serif;color:white;
+}
+#scene{position:relative;width:100%;height:100vh;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cake{
+  position:absolute;left:50%;bottom:12%;
+  transform:translateX(-50%);
+  width:min(82vw,430px);
+  opacity:0;
+  animation:appear 1s ease forwards;
+}
+.layer{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:90%;height:65px;border-radius:14px 14px 8px 8px;
+  background:linear-gradient(#ff9fbd,#f05c8c);
+  box-shadow:0 8px 0 #b72e5d,0 14px 25px #0008;
+  opacity:0;
+}
+.layer:before{
+  content:"";position:absolute;left:0;right:0;top:-10px;height:18px;
+  border-radius:50%;background:#ffd6e4;
+  box-shadow:inset 0 -5px #f4a1bd;
+}
+.layer:nth-child(1){bottom:0;animation:layerIn .8s .5s forwards}
+.layer:nth-child(2){bottom:58px;width:82%;animation:layerIn .8s 1.2s forwards}
+.layer:nth-child(3){bottom:116px;width:73%;animation:layerIn .8s 1.9s forwards}
+.layer:nth-child(4){bottom:174px;width:64%;animation:layerIn .8s 2.6s forwards}
+.cream{
+  position:absolute;left:50%;bottom:229px;transform:translateX(-50%);
+  width:58%;height:25px;border-radius:50%;
+  background:#fff0f5;opacity:0;
+  animation:layerIn .8s 3.3s forwards;
+}
+.candle{
+  position:absolute;left:50%;bottom:248px;transform:translateX(-50%);
+  width:22px;height:80px;border-radius:7px;
+  background:repeating-linear-gradient(135deg,#fff 0 10px,#ff6b9c 10px 20px);
+  opacity:0;animation:layerIn .7s 3.7s forwards;
+}
+.flame{
+  position:absolute;left:50%;bottom:320px;transform:translateX(-50%);
+  width:25px;height:38px;border-radius:50% 50% 50% 50%;
+  background:radial-gradient(circle at 50% 70%,#fff 0 15%,#ffd43b 25%,#ff7a00 60%,transparent 70%);
+  filter:drop-shadow(0 0 12px #ff9d00);
+  opacity:0;animation:flameIn .6s 4.2s forwards, flicker .7s 4.8s infinite alternate;
+}
+h1{
+ position:absolute;top:7%;left:50%;transform:translateX(-50%);
+ width:90%;text-align:center;margin:0;
+ font-size:clamp(28px,8vw,58px);
+ letter-spacing:3px;text-shadow:0 0 18px #ff6da5;
+ opacity:0;animation:titleIn 1.2s 4.7s forwards;
+}
+#sub{
+ position:absolute;top:17%;left:50%;transform:translateX(-50%);
+ width:90%;text-align:center;font-size:clamp(14px,4vw,22px);
+ opacity:0;animation:titleIn 1s 5.2s forwards;
+}
+button{
+ position:absolute;bottom:4%;left:50%;transform:translateX(-50%);
+ padding:12px 22px;border:0;border-radius:30px;background:#ff5f9a;color:white;
+ font-size:16px;box-shadow:0 5px 18px #ff5f9a88;cursor:pointer;
+}
+@keyframes layerIn{from{opacity:0;transform:translateX(-50%) translateY(45px) scale(.75)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes appear{to{opacity:1}}
+@keyframes flameIn{to{opacity:1}}
+@keyframes flicker{to{transform:translateX(-50%) scale(1.12) rotate(2deg)}}
+@keyframes titleIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+<div id="scene">
+<canvas id="fx"></canvas>
+<h1>Happy Birthday! 🎂</h1>
+<div id="sub">Wishing you a beautiful day filled with love and happiness ❤️</div>
+
+<div id="cake">
+  <div class="layer"></div>
+  <div class="layer"></div>
+  <div class="layer"></div>
+  <div class="layer"></div>
+  <div class="cream"></div>
+  <div class="candle"></div>
+  <div class="flame"></div>
+</div>
+<button onclick="restart()">Replay Animation</button>
+</div>
+
+<script>
+const canvas=document.getElementById("fx"),ctx=canvas.getContext("2d");
+let W,H,particles=[],start=performance.now();
+
+function resize(){
+ W=canvas.width=innerWidth*devicePixelRatio;
+ H=canvas.height=innerHeight*devicePixelRatio;
+ canvas.style.width=innerWidth+"px";canvas.style.height=innerHeight+"px";
+ ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+addEventListener("resize",resize);resize();
+
+function heart(x,y,s){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ ctx.beginPath();
+ ctx.moveTo(0,3);
+ ctx.bezierCurveTo(-15,-10,-25,-2,-25,8);
+ ctx.bezierCurveTo(-25,21,-8,29,0,36);
+ ctx.bezierCurveTo(8,29,25,21,25,8);
+ ctx.bezierCurveTo(25,-2,15,-10,0,3);
+ ctx.fill();ctx.restore();
+}
+
+function makeParticle(i){
+ const t=Math.random()*Math.PI*2;
+ // heart-shaped distribution, slowly filling from bottom upward
+ const y=Math.random()*innerHeight*.65;
+ const k=y/(innerHeight*.65);
+ const half=60+190*Math.sin(Math.PI*k);
+ return {
+   x:innerWidth/2+(Math.random()*2-1)*half,
+   y:innerHeight*.86-y,
+   s:Math.random()*0.25+0.18,
+   a:Math.random()*Math.PI*2,
+   vy:Math.random()*.35+.12,
+   delay:Math.random()*4200,
+   born:false,
+   hue:Math.floor(Math.random()*360)
+ };
+}
+for(let i=0;i<150;i++)particles.push(makeParticle(i));
+
+function draw(now){
+ ctx.clearRect(0,0,innerWidth,innerHeight);
+ const elapsed=now-start;
+ particles.forEach(p=>{
+   if(elapsed<p.delay)return;
+   p.born=true;
+   p.y-=p.vy;
+   p.a+=.01;
+   ctx.globalAlpha=Math.max(0,Math.min(1,(elapsed-p.delay)/700));
+   ctx.fillStyle=`hsl(${p.hue},85%,70%)`;
+   heart(p.x+Math.sin(p.a)*2,p.y,p.s);
+ });
+ ctx.globalAlpha=1;
+ requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+function restart(){
+ document.querySelectorAll(".layer,.cream,.candle,.flame,h1,#sub").forEach(e=>{
+   e.style.animation="none";void e.offsetWidth;e.style.animation="";
+ });
+ start=performance.now();
+ particles.forEach(p=>Object.assign(p,makeParticle()));
+}
+</script>
+</body>
+</html>
